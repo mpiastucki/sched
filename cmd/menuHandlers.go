@@ -13,7 +13,6 @@ import (
 
 func addEvents(s *sched.Schedule) {
 	sc := bufio.NewScanner(os.Stdin)
-
 	for {
 		err := s.AddEvent()
 		if err != nil {
@@ -38,7 +37,6 @@ func editEvent(idx int, s *sched.Schedule) {
 	if name != "" {
 		s.Events[idx].Name = name
 	}
-
 	if dur != "" {
 		parsedDuration, err := time.ParseDuration(dur + "m")
 		if err != nil {
@@ -47,7 +45,30 @@ func editEvent(idx int, s *sched.Schedule) {
 		}
 		s.Events[idx].Duration = parsedDuration
 	}
+}
 
+func handleEdit(s *sched.Schedule, sc *bufio.Scanner) {
+	if len(s.Events) == 0 {
+		fmt.Println("No events to edit.")
+		return
+	}
+	var idx int
+	for {
+		fmt.Print("edit index: ")
+		sc.Scan()
+		var err error
+		idx, err = strconv.Atoi(sc.Text())
+		if err != nil {
+			fmt.Println("Not a valid index, try again.")
+			continue
+		}
+		if idx < 0 || idx > len(s.Events)-1 {
+			fmt.Println("Index out of range, try again.")
+			continue
+		}
+		break
+	}
+	editEvent(idx, s)
 }
 
 func insertEvent(s *sched.Schedule, sc *bufio.Scanner) {
@@ -69,7 +90,6 @@ func insertEvent(s *sched.Schedule, sc *bufio.Scanner) {
 		Duration: dur,
 	}
 	var idx int
-
 	for {
 		fmt.Print("index to insert at: ")
 		sc.Scan()
@@ -80,12 +100,10 @@ func insertEvent(s *sched.Schedule, sc *bufio.Scanner) {
 		}
 		break
 	}
-
 	err = s.Insert(idx, newEvent)
 	if err != nil {
 		log.Println(err)
 	}
-
 }
 
 func handleTimeChange(s *sched.Schedule, sc *bufio.Scanner) {
@@ -104,7 +122,6 @@ func handleTimeChange(s *sched.Schedule, sc *bufio.Scanner) {
 		newMin = 0
 	}
 	n := time.Now()
-
 	s.StartDatetimeFromCommandArgs = time.Date(n.Year(), n.Month(), n.Day(), newHour, newMin, 0, 0, time.Local)
 	s.Calc()
 }

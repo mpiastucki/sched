@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/happymanju/sched/sched"
@@ -20,20 +19,16 @@ func Run(args []string) int {
 	var err error
 	sc := bufio.NewScanner(os.Stdin)
 	newDate = time.Date(newDate.Year(), newDate.Month(), newDate.Day(), 9, 0, 0, 0, time.Local)
-
 	isRunning := true
-
 	s := sched.Schedule{
 		StartDatetimeFromCommandArgs: newDate,
 	}
-
 	for isRunning {
 		clearScreen()
 		fmt.Println(s.ToString())
-		fmt.Println("(a) add events | (i) insert event | (t) change start time | (d) delete event | (s) save schedule to text | (m) to markdown table | (b) save to binary| (l) load | (q) quit")
+		fmt.Println("(a) add events | (i) insert event | (e) edit event | (t) change start time | (d) delete event | (s) save schedule to text | (m) to markdown table | (b) save to binary| (l) load | (q) quit")
 		sc.Scan()
 		input := sc.Text()
-
 		switch input {
 		case "a":
 			addEvents(&s)
@@ -69,21 +64,15 @@ func Run(args []string) int {
 				log.Println(err)
 			}
 			continue
+		case "e":
+			handleEdit(&s, sc)
+			s.Calc()
+			continue
 		case "q":
 			isRunning = false
 			continue
 		default:
-			idx, err := strconv.Atoi(input)
-			if err != nil {
-				log.Println(err)
-			}
-			if idx < 0 || idx > len(s.Events)-1 {
-				fmt.Println("Not a valid event index")
-			} else {
-				editEvent(idx, &s)
-				s.Calc()
-			}
-
+			fmt.Println("Unknown command:", input)
 		}
 	}
 	return 0
